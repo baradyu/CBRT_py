@@ -1,0 +1,38 @@
+def getseries(series, startdate, enddate, key, aggregation="", formulas="", frequency=""):
+    # imports
+    import pandas as pd
+    import datetime
+
+    # for more than one series
+    if type(series) is list:
+        series = '-'.join(series)
+
+    # handling startdate, enddate
+    dates = [startdate, enddate]
+    for i in range(0, len(dates)):
+        if "." in dates[i]:
+            dates[i] = dates[i].replace(".", "-")
+        if "/" in dates[i]:
+            dates[i] = dates[i].replace("/", "-")
+    startdate = dates[0]
+    enddate = dates[1]
+
+    # base url
+    url = f"https://evds2.tcmb.gov.tr/service/evds/series={series}&startDate={startdate}&endDate={enddate}&type=csv&key={key}"
+    
+    # adding aggregation, formulas, frequency
+    if len(aggregation) != 0:
+        url = url + f"&aggregationTypes={aggregation}"
+    if len(formulas) != 0:
+        url = url + f"&formulas={formulas}"
+    if len(frequency) != 0:
+        url = url + f"&frequency={frequency}"
+    
+    print("source: " + url) # source
+    data = pd.read_csv(url) # getting data
+
+    # converting date to datetime format
+    data["Tarih"] = [datetime.datetime.strptime(data["Tarih"][i],"%d-%m-%Y").date() for i in range(0, len(data))]
+
+    del data["UNIXTIME"] # deleting UNIXTIME column
+    return data
